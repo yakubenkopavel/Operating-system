@@ -8,7 +8,7 @@ void ShellSort(int n, float mass[])
     int i, j, step;
     float tmp;
 
-    for (step = n / 2; step > 0; step /= 2)
+    for (step = n / 2; step > 0; step /= 2) {
         for (i = step; i < n; i++)
         {
             tmp = mass[i];
@@ -21,22 +21,37 @@ void ShellSort(int n, float mass[])
             }
             mass[j] = tmp;
         }
+    }
 }
 
 
 int main(int argc, char* argv[])
 {
-    float* arrays = new float[argc];
-    for (int i = 0; i < argc; i++) {
-        arrays[i] = std::atof(argv[i]);
+    int size = std::atoi(argv[0]);
+    if (size >= argc) {
+        std::cout << "Error" << std::endl;
+        system("pause");
+        return 0;
     }
 
-    wprintf(L"%d\n", argc);
 
-    ShellSort(argc, arrays);
-    for (int i = 0; i < argc; i++) {
-        wprintf(L"%.1f ", arrays[i]);
+    float* arrays = new float[size];
+
+    for (int i = 0; i < size; i++) {
+        arrays[i] = std::atof(argv[i + 1]);
     }
-	_getch();
 
+    std::cout << "Size array: " << size;
+
+    ShellSort(size, arrays);
+
+    std::cout << "\nSorted array: ";
+    for (int i = 0; i < size; i++) {
+        std::cout << arrays[i] << " ";
+    }
+    std::cout << std::endl;
+
+    delete[] arrays;
+    system("pause");
+    return 0;
 }

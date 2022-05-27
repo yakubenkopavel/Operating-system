@@ -1,25 +1,27 @@
 ﻿#include <iostream>
-#include <conio.h>
-#include <stdio.h>
 #include <windows.h>
 #include <tchar.h>
-#include <wchar.h>
-#include <errno.h>
 #include <string>
 
 
 int main()
 {
     TCHAR nameChild[] = _T("Child.exe");
-
-    std::string line;
-    std::getline(std::cin, line);
-
-    TCHAR* commandLine = new TCHAR[line.size() + 1];
-    std::copy(line.begin(), line.end(), commandLine);
-
+    TCHAR* commandLine = nullptr;
     STARTUPINFO si;
     PROCESS_INFORMATION piApp;
+    std::string line;
+    std::string size;
+
+    std::cout << "Enter array size: ";
+    std::getline(std::cin, size);
+    std::cout << "Enter array elements: ";
+    std::getline(std::cin, line);
+
+    line = size + " " + line;
+    commandLine = new TCHAR[line.size() + 1];
+    std::copy(line.begin(), line.end(), commandLine);
+
 
     ZeroMemory(&si, sizeof(STARTUPINFO));
     si.cb = sizeof(STARTUPINFO);
@@ -29,7 +31,7 @@ int main()
     if (!CreateProcess(nameChild, commandLine, NULL, NULL, FALSE,
         CREATE_NEW_CONSOLE, NULL, NULL, &si, &piApp))
     {
-        _cputs("The new process is not created.\n");
+        std::cout << "The new process is not created.\n";
         return 0;
     }
 
@@ -38,5 +40,6 @@ int main()
     CloseHandle(piApp.hThread);
     CloseHandle(piApp.hProcess);
 
+    delete[] commandLine;
     return 0;
 }
