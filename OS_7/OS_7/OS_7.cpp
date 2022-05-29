@@ -3,7 +3,9 @@
 #include <random>
 #include <time.h>
 
-int iterator = 0;
+char getRandomProduct() {
+    return 'a' + rand() % 10;
+}
 
 class MonitorStack {
 private:
@@ -52,35 +54,35 @@ char MonitorStack::Pop() {
 struct tagParam : public MonitorStack {
 public:
     int count;
-    char element;
-    char* el;
+    int iterator;
+    char* products;
     HANDLE hAccess;
     HANDLE hFull;
     HANDLE hEmpty;
 
-    tagParam(int countProducer, int size, HANDLE hAccess, HANDLE hFull, HANDLE hEmpty) : MonitorStack(size)
+    tagParam(char* products, int size, HANDLE hAccess, HANDLE hFull, HANDLE hEmpty) : MonitorStack(size)
     {
-        el = new char[countProducer];
-        for (int i = 0; i < countProducer; i++) {
-            el[i] = 'a' + i;
-        }
+        count = 0;
+        iterator = -1;
+        this->products = products;
         this->hAccess = hAccess;
         this->hFull = hFull;
         this->hEmpty = hEmpty;
-        count = 0;
-        element = 'a';
     }
 
     ~tagParam() {
-        
+    }
+
+    char getProduct() {
+        iterator++;
+        return products[iterator];
     }
 };
 
 void Push(LPVOID lpParam) {
     setlocale(LC_ALL, "Rus");
     tagParam* param = (tagParam*)lpParam;
-    char element = param->el[iterator];
-    iterator++;
+    char element = param->getProduct();
 
     for (int i = 0; i < param->count; i++) {
         WaitForSingleObject(param->hFull, INFINITE);
@@ -97,8 +99,8 @@ void Pop(LPVOID lpParam) {
     tagParam* param = (tagParam*)lpParam;
 
 
+    WaitForSingleObject(param->hEmpty, INFINITE);
     for (int i = 0; i < param->count; i++) {
-        WaitForSingleObject(param->hEmpty, INFINITE);
         WaitForSingleObject(param->hAccess, INFINITE);
         std::cout << "\nУпотреблен элемент : " << param->Pop();;
         ReleaseSemaphore(param->hAccess, 1, NULL);
@@ -111,6 +113,7 @@ int main()
 {
     srand(time(0));
     int sizeStack, countProducer, countConsumer;
+    char* products = nullptr;
 
     std::cout << "input size Stack: ";
     std::cin >> sizeStack;
@@ -118,6 +121,11 @@ int main()
     std::cin >> countProducer;
     std::cout << "input size countConsumer: ";
     std::cin >> countConsumer;
+
+    products = new char[countProducer];
+    for (int i = 0; i < countProducer; i++) {
+        products[i] = getRandomProduct();
+    }
 
 
     HANDLE* hProducer = new HANDLE[countProducer];
@@ -127,7 +135,7 @@ int main()
     HANDLE hFull = CreateSemaphore(NULL, sizeStack, sizeStack, L"S2");
     HANDLE hEmpty = CreateSemaphore(NULL, 0, 1, L"S3");
     
-    tagParam param(countProducer, sizeStack, hAccess, hFull, hEmpty);
+    tagParam param(products, sizeStack, hAccess, hFull, hEmpty);
 
     for (int i = 0; i < countProducer; i++) {
         param.count = 2;
@@ -164,5 +172,7 @@ int main()
     for (int i = 0; i < countConsumer; i++) {
         CloseHandle(hConsumer[i]);
     }
+
+    delete[] products;
     return 0;
 }
